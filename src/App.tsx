@@ -1,26 +1,64 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import { Todo } from "./types";
+import "./styles/main.scss";
+import TodoInput from "./components/TodoInput";
+import TodoList from "./components/TodoList";
+import TodoFooter from "./components/TodoFooter";
 
-function App() {
+const App: React.FC = () => {
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  const handleAddTodo = (text: string) => {
+    const newTodo: Todo = {
+      id: Date.now(),
+      text,
+      completed: false,
+    };
+    setTodos((prev) => [...prev, newTodo]);
+  };
+
+  const handleToggleTodo = (id: number) => {
+    setTodos((prev) =>
+      prev.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
+
+  const handleDeleteTodo = (id: number) => {
+    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+  };
+
+  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
+
+  const handleClearCompleted = () => {
+    setTodos((prev) => prev.filter((todo) => !todo.completed));
+  };
+
+  const filteredTodos = todos.filter((todo) => {
+    if (filter === "active") return !todo.completed;
+    if (filter === "completed") return todo.completed;
+    return true;
+  });
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <p className="title">todos</p>
+      <TodoInput onAdd={handleAddTodo} />
+      <TodoList
+        todos={filteredTodos}
+        onToggle={handleToggleTodo}
+        onDelete={handleDeleteTodo}
+      />
+      <TodoFooter
+        activeCount={todos.filter((todo) => !todo.completed).length}
+        currentFilter={filter}
+        onFilterChange={setFilter}
+        onClearCompleted={handleClearCompleted}
+        hasCompleted={todos.some((todo) => todo.completed)}
+      />
     </div>
   );
-}
+};
 
 export default App;
